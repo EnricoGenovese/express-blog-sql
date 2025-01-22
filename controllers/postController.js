@@ -1,3 +1,4 @@
+import { response } from "express";
 import connection from "../connection.js";
 
 export function index(req, res) {
@@ -74,45 +75,19 @@ export function store(req, res) {
 
 export function update(req, res) {
     const id = parseInt(req.params.id);
-    const post = posts.find((post) => post.id === id);
-    if (!post) {
-        res.status(404).json({ success: false, message: "The post does not exist" })
-        return;
-    }
-    for (let key in post) {
-        if (key !== "id") {
-            post[key] = req.body[key];
-        }
-    }
-    console.log(posts);
-    res.json(post);
 };
 
 export function modify(req, res) {
     const id = parseInt(req.params.id);
-    const post = posts.find((post) => post.id === id);
-    if (post) {
-        res.send("Item patched")
-    } else {    // --> if post does not exist
-        res.send("Cannot patch what does not exist")
-    }
 
 };
 
 export function destroy(req, res) {
     const id = parseInt(req.params.id);
-    const index = posts.findIndex(item => item.id === id);
-    //
-    if (index !== -1) {
-        posts.splice(index, 1);
-        res.sendStatus(204) // --> no content
-        console.log(posts);
-        //
-    } else { // --> if post does not exist
-        res.status(404);
-        res.json({
-            error: 404,
-            message: "Cannot destroy what does not exist"
-        });
-    };
+    const sql = "DELETE FROM `posts` WHERE `id` = ?;"
+
+    connection.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: "Database query failed" });
+        res.sendStatus(204);
+    })
 };
