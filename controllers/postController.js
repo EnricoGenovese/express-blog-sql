@@ -1,5 +1,4 @@
 import connection from "../connection.js";
-// import CustomError from "../classes/CustomError";
 
 export function index(req, res) {
     const sql = "SELECT * FROM `posts`"
@@ -13,7 +12,7 @@ export function index(req, res) {
             data,
         };
 
-        if (response.data.length < 1) { // --> if post does not exist
+        if (response.data.length < 1) {
             res.status(404);
             response = {
                 error: 404,
@@ -27,20 +26,30 @@ export function index(req, res) {
 
 export function show(req, res) {
     const id = parseInt(req.params.id);
-    const post = posts.find((post) => post.id === id);
+    const sql = "SELECT * FROM `posts` WHERE `id`= ?";
 
-    if (post) {
-        res.json({
-            success: true,
-            post,
-        });
+    connection.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: "Database query failed" });
 
-    } else {
-        res.json({
-            success: false,
-            messegge: "Post not found!"
-        });
-    }
+        const obj = results[0]
+        if (!obj) {
+            return res.status(404).json("Object does not exist")
+        }
+
+        const sqlTags = `
+            SELECT tags.id, tags.label FROM tags
+            JOIN post_tag ON post_tag.tag_id = tags.id
+            JOIN posts ON posts.id = post_tag.post_id
+            WHERE posts.id = ?;
+        `
+
+        connection.query(sqlTags, [id], (err, results) => {
+            if (err) return res.status(500).json({ error: "Database query failed" });
+            obj.tags = results;
+            res.json({ success: true, obj })
+        })
+    })
+
 };
 
 export function store(req, res) {
