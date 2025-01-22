@@ -38,7 +38,7 @@ export function show(req, res) {
         }
 
         const sqlTags = `
-            SELECT tags.id, tags.label FROM tags
+            SELECT tags.label FROM tags
             JOIN post_tag ON post_tag.tag_id = tags.id
             JOIN posts ON posts.id = post_tag.post_id
             WHERE posts.id = ?;
